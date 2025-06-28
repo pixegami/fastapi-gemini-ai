@@ -44,3 +44,29 @@ def apply_rate_limit(user_id: str):
 
     user_requests[user_id].append(current_time)
     return True
+
+
+def get_user_usage_stats(user_id: str) -> dict:
+    current_time = time.time()
+    
+    if user_id == "global_unauthenticated_user":
+        rate_limit = GLOBAL_RATE_LIMIT
+        time_window = GLOBAL_TIME_WINDOW_SECONDS
+        is_authenticated = False
+    else:
+        rate_limit = AUTH_RATE_LIMIT
+        time_window = AUTH_TIME_WINDOW_SECONDS
+        is_authenticated = True
+    
+    # Filter out requests older than the time window
+    recent_requests = [
+        t for t in user_requests[user_id] if t > current_time - time_window
+    ]
+    
+    return {
+        "user_id": user_id,
+        "usage_count": len(recent_requests),
+        "rate_limit": rate_limit,
+        "time_window_seconds": time_window,
+        "is_authenticated": is_authenticated
+    }
